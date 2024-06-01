@@ -15,9 +15,11 @@ from utee import hook
 #from IPython import embed
 from datetime import datetime
 from subprocess import call
+from typing import Dict, Any
+
 parser = argparse.ArgumentParser(description='PyTorch CIFAR-X Example')
-parser.add_argument('--dataset', default='cifar10', help='cifar10|cifar100|imagenet')
-parser.add_argument('--model', default='VGG8', help='VGG8|DenseNet40|ResNet18')
+parser.add_argument('--dataset', default='mnist', help='cifar10|cifar100|imagenet')
+parser.add_argument('--model', default='HD', help='VGG8|DenseNet40|ResNet18')
 parser.add_argument('--mode', default='WAGE', help='WAGE|FP')
 parser.add_argument('--batch_size', type=int, default=200, help='input batch size for training (default: 64)')
 parser.add_argument('--epochs', type=int, default=200, help='number of epochs to train (default: 10)')
@@ -69,17 +71,27 @@ if args.cuda:
 	torch.cuda.manual_seed(args.seed)
 
 # data loader and model
-assert args.dataset in ['cifar10', 'cifar100', 'imagenet'], args.dataset
+assert args.dataset in ['cifar10', 'cifar100', 'imagenet', 'mnist'], args.dataset
 if args.dataset == 'cifar10':
     train_loader, test_loader = dataset.get_cifar10(batch_size=args.batch_size, num_workers=1)
 elif args.dataset == 'cifar100':
     train_loader, test_loader = dataset.get_cifar100(batch_size=args.batch_size, num_workers=1)
 elif args.dataset == 'imagenet':
     train_loader, test_loader = dataset.get_imagenet(batch_size=args.batch_size, num_workers=1)
+elif args.dataset == 'mnist':
+    from datasets import load_dataset
+    data_args: Dict[str, Any] = {
+        "dataset": "mnist",
+        "train_batch_size": 2048,
+        "test_batch_size": 16,
+        "num_workers": 4,
+        "train_ratio": 0.8,
+    }
+    train_loader, _, test_loader = load_dataset("mnist", data_args, True)
 else:
     raise ValueError("Unknown dataset type")
     
-assert args.model in ['VGG8', 'DenseNet40', 'ResNet18'], args.model
+assert args.model in ['VGG8', 'DenseNet40', 'ResNet18', "HD"], args.model
 if args.model == 'VGG8':
     from models import VGG
     model_path = './log/VGG8.pth'   # WAGE mode pretrained model
@@ -91,9 +103,32 @@ elif args.model == 'DenseNet40':
 elif args.model == 'ResNet18':
     from models import ResNet
     # FP mode pretrained model, loaded from 'https://download.pytorch.org/models/resnet18-5c106cde.pth'
-    # model_path = './log/xxx.pth'
+    # model_path = './log/xxxha.pth'
     # modelCF = ResNet.resnet18(args = args, logger=logger, pretrained = model_path)
     modelCF = ResNet.resnet18(args = args, logger=logger, pretrained = True)
+elif args.model == "HD":
+    from models import HDFactory
+    # params
+    hd_dim: int = 2048
+    f1: int = 28
+    d1: int = 64
+    reram_size: int = 64
+    frequency: int = int(1e9)
+    binarize_type: bool = False
+    kron: bool = False
+
+    # construct hd
+    hd_factory = HDFactory(
+        28 * 28, hd_dim, 10, binarize_type, "cpu"
+    )
+    if kron:
+        # pass
+        hd_factory.set_kronecker(d1, f1)
+    hd_factory.bernoulli()
+    hd_factory.binarize(binarize_type)
+    hd_factory.init_buffer(train_loader)
+
+    modelCF = hd_factory.create()
 else:
     raise ValueError("Unknown model type")
 
@@ -132,17 +167,17 @@ for i, (data, target) in enumerate(test_loader):
     with torch.no_grad():
         data, target = Variable(data), Variable(target)
         output = modelCF(data)
-        test_loss_i = criterion(output, target)
-        test_loss += test_loss_i.data
-        pred = output.data.max(1)[1]  # get the index of the max log-probability
-        correct += pred.cpu().eq(indx_target).sum()
+        # test_loss_i = criterion(output, target)
+        # test_loss += test_loss_i.data
+        # pred = output.data.max(1)[1]  # get the index of the max log-probability
+        # correct += pred.cpu().eq(indx_target).sum()
     if i==0:
         hook.remove_hook_list(hook_handle_list)
 
-test_loss = test_loss / len(test_loader)  # average over number of mini-batch
-acc = 100. * correct / len(test_loader.dataset)
+# test_loss = test_loss / len(test_loader)  # average over number of mini-batch
+# acc = 100. * correct / len(test_loader.dataset)
 
-accuracy = acc.cpu().data.numpy()
+# accuracy = acc.cpu().data.numpy()
 
 if args.inference:
     print(" --- Hardware Properties --- ")
@@ -159,7 +194,7 @@ if args.inference:
     print("variation: ")
     print(args.vari)
 
-logger('Test set: Average loss: {:.4f}, Accuracy: {}/{} ({:.0f}%)'.format(
-	test_loss, correct, len(test_loader.dataset), acc))
+# logger('Test set: Average loss: {:.4f}, Accuracy: {}/{} ({:.0f}%)'.format(
+# 	test_loss, correct, len(test_loader.dataset), acc))
 
 call(["/bin/bash", './layer_record_'+str(args.model)+'/trace_command.sh'])

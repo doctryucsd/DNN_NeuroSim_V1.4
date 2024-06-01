@@ -762,9 +762,9 @@ void TileCalculatePerformance(const vector<vector<double> > &newMemory, const ve
 
 vector<vector<double> > CopyPEArray(const vector<vector<double> > &orginal, int positionRow, int positionCol, int numRow, int numCol) {
 	vector<vector<double> > copy;
-	for (int i=0; i<numRow; i++) {
+	for (int i=0; i<numRow & i<orginal.size(); i++) {
 		vector<double> copyRow;
-		for (int j=0; j<numCol; j++) {
+		for (int j=0; j<numCol & j<orginal.size(); j++) {
 			copyRow.push_back(orginal[positionRow+i][positionCol+j]);
 		}
 		copy.push_back(copyRow);
@@ -777,9 +777,9 @@ vector<vector<double> > CopyPEArray(const vector<vector<double> > &orginal, int 
 
 vector<vector<double> > CopyPEInput(const vector<vector<double> > &orginal, int positionRow, int numInputVector, int numRow) {
 	vector<vector<double> > copy;
-	for (int i=0; i<numRow; i++) {
+	for (int i=0; i<numRow & i<orginal.size(); i++) {
 		vector<double> copyRow;
-		for (int j=0; j<numInputVector; j++) {
+		for (int j=0; j<numInputVector & j<orginal.size(); j++) {
 			copyRow.push_back(orginal[positionRow+i][j]);
 		}
 		copy.push_back(copyRow);

@@ -1500,7 +1500,7 @@ vector<vector<double> > ReshapeArray(const vector<vector<double> > &orginal, int
 	vector<vector<double> > copy;
 
 	for (int k=0; k<numPE; k++) {
-		for (int i=0; i<numRow; i++) {
+		for (int i=0; i<numRow & (positionRow+k*weightMatrixRow+i) < orginal.size(); i++) {
 			vector<double> copyRow;
 			for (int j=0; j<numCol; j++) {
 				copyRow.push_back(orginal[positionRow+k*weightMatrixRow+i][positionCol+j]);
@@ -1620,7 +1620,7 @@ vector<vector<double> > ReshapeInput(const vector<vector<double> > &orginal, int
 	vector<vector<double> > copy;
 
 	for (int k=0; k<numPE; k++) {
-		for (int i=0; i<numRow; i++) {
+		for (int i=0; i<numRow & (positionRow+k*weightMatrixRow+i) < orginal.size(); i++) {
 			vector<double> copyRow;
 			for (int j=0; j<numInputVector; j++) {
 				copyRow.push_back(orginal[positionRow+k*weightMatrixRow+i][j]);

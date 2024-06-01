@@ -124,7 +124,7 @@ Param::Param() {
 	clkFreq = 1e9;                      // Clock frequency
 	temp = 300;                         // Temperature (K)
 
-	technode = 22;					    // Technology node (nm)
+	technode = 32;					    // Technology node (nm)
 	
 	// 1.4 update: Activation implementation option added
 	Activationtype=true; // true: SRAM, False: RRAM

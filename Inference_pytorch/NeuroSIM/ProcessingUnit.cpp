@@ -636,7 +636,7 @@ double ProcessingUnitCalculatePerformance(SubArray *subArray, const vector<vecto
 
 vector<vector<double> > CopySubArray(const vector<vector<double> > &orginal, int positionRow, int positionCol, int numRow, int numCol) {
 	vector<vector<double> > copy;
-	for (int i=0; i<numRow; i++) {
+	for (int i=0; i<numRow & (positionRow + i)<orginal.size(); i++) {
 		vector<double> copyRow;
 		for (int j=0; j<numCol; j++) {
 			copyRow.push_back(orginal[positionRow+i][positionCol+j]);
@@ -651,7 +651,7 @@ vector<vector<double> > CopySubArray(const vector<vector<double> > &orginal, int
 
 vector<vector<double> > CopySubInput(const vector<vector<double> > &orginal, int positionRow, int numInputVector, int numRow) {
 	vector<vector<double> > copy;
-	for (int i=0; i<numRow; i++) {
+	for (int i=0; i<numRow & (positionRow+i) < orginal.size(); i++) {
 		vector<double> copyRow;
 		for (int j=0; j<numInputVector; j++) {
 			copyRow.push_back(orginal[positionRow+i][j]);

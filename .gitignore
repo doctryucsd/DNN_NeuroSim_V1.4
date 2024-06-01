@@ -1,0 +1,9 @@
+*.o
+*.depend
+main
+datasets/
+layer_record*/
+log/
+models/
+modules/
+__pycache__/
