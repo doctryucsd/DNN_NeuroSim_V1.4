@@ -59,6 +59,7 @@
 #include "constant.h"
 #include "formula.h"
 #include <pybind11/pybind11.h>
+#include <pybind11/stl.h>
 
 using namespace std;
 
@@ -69,7 +70,7 @@ vector<vector<double>> getNetStructure(const string &inputfile) {
 
     int ROWin = 0, COLin = 0;
     if (!infile.good()) {
-        cerr << "Error: the input file cannot be opened!" << endl;
+        cerr << "NetStructure Error: the input file: \"" << inputfile << "\" cannot be opened!" << endl;
         exit(1);
     } else {
         while (getline(infile, inputline, '\n')) {
@@ -440,6 +441,7 @@ tuple<double, double, double> PPA(const string &net_file,
                                   float frequency,
                                   int tempature,
                                   int ram_size,
+                                  int cell_bit,
                                   const vector<string> &data_file) {
     auto start = chrono::high_resolution_clock::now();
 
@@ -458,7 +460,8 @@ tuple<double, double, double> PPA(const string &net_file,
     param->numRowSubArray = ram_size;  // number row of subarray
     param->numColSubArray = ram_size;  // number column of subarray
     param->numRowParallel = ram_size;  // number of enabled rows of subarray
-    param->memCellType = cell_type;       // 1: SRAM, 2: RRAM
+    param->memcelltype = cell_type;       // 1: SRAM, 2: RRAM
+    param->cellBit = cell_bit;            // precision of memory cell
 
     check_param();
 
@@ -593,8 +596,8 @@ tuple<double, double, double> PPA(const string &net_file,
         for (int i = 0; i < netStructure.size(); i++) {
             // Anni update: add &tileLeakageSRAMInUse
             ChipCalculatePerformance(
-                inputParameter, tech, cell, i, data_file[2 * i + 6], data_file[2 * i + 6],
-                data_file[2 * i + 7], netStructure[i][6], netStructure, markNM,
+                inputParameter, tech, cell, i, data_file[2 * i], data_file[2 * i],
+                data_file[2 * i + 1], netStructure[i][6], netStructure, markNM,
                 numTileEachLayer, utilizationEachLayer, speedUpEachLayer,
                 tileLocaEachLayer, numPENM, desiredPESizeNM, desiredTileSizeCM,
                 desiredPESizeCM, CMTileheight, CMTilewidth, NMTileheight,
@@ -625,8 +628,8 @@ tuple<double, double, double> PPA(const string &net_file,
             //      << " ----------------------" << endl;
             // Anni update: add &tileLeakageSRAMInUse
             ChipCalculatePerformance(
-                inputParameter, tech, cell, i, data_file[2 * i + 6], data_file[2 * i + 6],
-                data_file[2 * i + 7], netStructure[i][6], netStructure, markNM,
+                inputParameter, tech, cell, i, data_file[2 * i], data_file[2 * i],
+                data_file[2 * i + 1], netStructure[i][6], netStructure, markNM,
                 numTileEachLayer, utilizationEachLayer, speedUpEachLayer,
                 tileLocaEachLayer, numPENM, desiredPESizeNM, desiredTileSizeCM,
                 desiredPESizeCM, CMTileheight, CMTilewidth, NMTileheight,
@@ -758,8 +761,8 @@ tuple<double, double, double> PPA(const string &net_file,
         for (int i = 0; i < netStructure.size(); i++) {
             // Anni update: add &tileLeakageSRAMInUse
             ChipCalculatePerformance(
-                inputParameter, tech, cell, i, data_file[2 * i + 6], data_file[2 * i + 6],
-                data_file[2 * i + 7], netStructure[i][6], netStructure, markNM,
+                inputParameter, tech, cell, i, data_file[2 * i], data_file[2 * i],
+                data_file[2 * i + 1], netStructure[i][6], netStructure, markNM,
                 numTileEachLayer, utilizationEachLayer, speedUpEachLayer,
                 tileLocaEachLayer, numPENM, desiredPESizeNM, desiredTileSizeCM,
                 desiredPESizeCM, CMTileheight, CMTilewidth, NMTileheight,
@@ -892,5 +895,9 @@ tuple<double, double, double> PPA(const string &net_file,
     //               chipLatencyOther, chipEnergyADC, chipEnergyAccum,
     //               chipEnergyOther, numComputation, start);
 
-    return make_tuple(chipReadDynamicEnergy, chipReadLatency, chipArea);
+    return make_tuple(chipReadDynamicEnergy * 1e6, chipReadLatency * 1e6, chipArea * 1e6);
+}
+
+PYBIND11_MODULE(neurosim_cpp, m) {
+    m.def("PPA", &PPA, "Returns the PPA value calculated by NeuroSIM.");
 }

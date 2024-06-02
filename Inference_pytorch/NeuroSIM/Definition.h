@@ -38,6 +38,8 @@
 
 // This file cannot be compiled alone. Only include this file in main.cpp.
 
+#include "Param.h"
+
 /* Global variables */
 Param *param = new Param(); // Parameter set
 

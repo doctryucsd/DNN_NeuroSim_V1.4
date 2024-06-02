@@ -1524,7 +1524,7 @@ vector<vector<double> > LoadInInputData(const string &inputfile) {
 	
 	int ROWin=0, COLin=0;      
 	if (!infile.good()) {       
-		cerr << "Error: the input file cannot be opened!" << endl;
+		cerr << "InputData Error: the input file: \"" << inputfile << "\" cannot be opened!" << endl;
 		exit(1);
 	}else{
 		while (getline(infile, inputline, '\n')) {      

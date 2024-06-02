@@ -9,12 +9,17 @@ import torch
 from utee import wage_quantizer
 from utee import float_quantizer
 
+file_list = []
+
 def Neural_Sim(self, input, output): 
     global model_n, FP
 
     print("quantize layer ", self.name)
     input_file_name =  './layer_record_' + str(model_n) + '/input' + str(self.name) + '.csv'
     weight_file_name =  './layer_record_' + str(model_n) + '/weight' + str(self.name) + '.csv'
+    file_list.append(weight_file_name)
+    file_list.append(input_file_name)
+
     f = open('./layer_record_' + str(model_n) + '/trace_command.sh', "a")
     f.write(weight_file_name+' '+input_file_name+' ')
     if FP:
@@ -112,18 +117,23 @@ def bin2dec(x,n):
 def remove_hook_list(hook_handle_list):
     for handle in hook_handle_list:
         handle.remove()
+    return file_list
 
 def hardware_evaluation(model,wl_weight,wl_activation,subArray,parallelRead,model_name,mode): 
     global model_n, FP
     model_n = model_name
     FP = 1 if mode=='FP' else 0
     
+    file_list = []
+
     hook_handle_list = []
-    if not os.path.exists('./layer_record_'+str(model_name)):
-        os.makedirs('./layer_record_'+str(model_name))
-    if os.path.exists('./layer_record_'+str(model_name)+'/trace_command.sh'):
-        os.remove('./layer_record_'+str(model_name)+'/trace_command.sh')
-    f = open('./layer_record_'+str(model_name)+'/trace_command.sh', "w")
+    dir = './layer_record_'+str(model_name)
+    if os.path.exists(dir):
+        shutil.rmtree(dir)
+    os.makedirs(dir)
+    if os.path.exists(dir+'/trace_command.sh'):
+        os.remove(dir+'/trace_command.sh')
+    f = open(dir+'/trace_command.sh', "w")
     f.write('./NeuroSIM/main ./NeuroSIM/NetWork_'+str(model_name)+'.csv '+str(wl_weight)+' '+str(wl_activation)+' '+str(subArray)+' '+str(parallelRead)+' ')
     
     for i, layer in enumerate(model.modules()):

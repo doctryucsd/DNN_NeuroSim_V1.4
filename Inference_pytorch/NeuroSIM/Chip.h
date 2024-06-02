@@ -39,6 +39,13 @@
 #ifndef CHIP_H_
 #define CHIP_H_
 
+#include <vector>
+#include "InputParameter.h"
+#include "Technology.h"
+#include "MemCell.h"
+
+using namespace std;
+
 /*** Functions ***/
 vector<int> ChipDesignInitialize(InputParameter& inputParameter, Technology& tech, MemCell& cell, bool pip, const vector<vector<double> > &netStructure,
 					double *maxPESizeNM, double *maxTileSizeCM, double *numPENM);
