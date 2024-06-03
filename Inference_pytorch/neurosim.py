@@ -1,6 +1,6 @@
 import torch
 import os
-from torch import nn
+from torch import nn, Tensor
 from torch.autograd import Variable
 from .utee import hook
 from typing import Tuple
@@ -10,9 +10,9 @@ from .build.neurosim_cpp import PPA # type: ignore
 from typing import List
 
 def write_model_network(model: nn.Module, model_name: str) -> str:
-    assert os.path.exists("./layer_record_HD")
+    assert os.path.exists(f"./layer_record_{model_name}"), f"Directory ./layer_record_{model_name} does not exist"
 
-    network_file: str = f"./layer_record_HD/NetWork_{model_name}.csv"
+    network_file: str = f"./layer_record_{model_name}/NetWork_{model_name}.csv"
     with open(network_file, "w") as f:
         for _, layer in model.named_modules():
             if len(list(layer.children())) != 0:
@@ -24,7 +24,7 @@ def write_model_network(model: nn.Module, model_name: str) -> str:
 
     return network_file
 
-def neurosim_ppa(model_name:str, model: nn.Module, test_loader: DataLoader, ram_size: int, frequency: int, temperature: int, cell_bit: int, device: str) -> Tuple[float, float, float, float]:
+def neurosim_ppa(model_name:str, model: nn.Module, x_test: Tensor, ram_size: int, frequency: int, temperature: int, cell_bit: int, device: str) -> Tuple[float, float, float, float]:
     """
     Args:
         model_name: model name
@@ -42,16 +42,11 @@ def neurosim_ppa(model_name:str, model: nn.Module, test_loader: DataLoader, ram_
     """
     # for data, target in test_loader:
     data_file: List[str] = []
-    for i, (data, target) in enumerate(test_loader):
-        if i==0:
-            hook_handle_list = hook.hardware_evaluation(model,8,8,ram_size, ram_size, model_name, "WAGE")
-        with torch.no_grad():
-            data, target = data.to(device), target.to(device)
-            data, target = Variable(data), Variable(target)
-            _ = model(data)
-        if i==0:
-            data_file = hook.remove_hook_list(hook_handle_list)
-            break
+
+    hook_handle_list = hook.hardware_evaluation(model,8,8,ram_size, ram_size, model_name, "WAGE")
+    with torch.no_grad():
+        _ = model(x_test)
+    data_file = hook.remove_hook_list(hook_handle_list)
 
     net_file: str = write_model_network(model, model_name)
     cell_type: int = 2
@@ -91,4 +86,4 @@ if __name__ == "__main__":
     hd_factory.init_buffer(train_loader)
 
     model = hd_factory.create()
-    print(neurosim_ppa("HD", model, test_loader, 64, int(1e9), 300, 1, "cuda:0"))
+    print(neurosim_ppa("HD", model, next(iter(test_loader))[0], 64, int(1e9), 300, 1, "cuda:0"))
