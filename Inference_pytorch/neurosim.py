@@ -2,10 +2,10 @@ import torch
 import os
 from torch import nn
 from torch.autograd import Variable
-from utee import hook
+from .utee import hook
 from typing import Tuple
 from torch.utils.data import DataLoader
-from neurosim_cpp import PPA # type: ignore
+from .build.neurosim_cpp import PPA # type: ignore
 # import neurosim_cpp # type: ignore
 from typing import List
 
@@ -24,7 +24,7 @@ def write_model_network(model: nn.Module, model_name: str) -> str:
 
     return network_file
 
-def neurosim_ppa(model_name:str, model: nn.Module, test_loader: DataLoader, ram_size: int, frequency: int, temperature: int, cell_bit: int) -> Tuple[float, float, float]:
+def neurosim_ppa(model_name:str, model: nn.Module, test_loader: DataLoader, ram_size: int, frequency: int, temperature: int, cell_bit: int, device: str) -> Tuple[float, float, float, float]:
     """
     Args:
         model_name: model name
@@ -38,6 +38,7 @@ def neurosim_ppa(model_name:str, model: nn.Module, test_loader: DataLoader, ram_
         energy: uJ
         latency: us
         area: mm^2
+        clock period: us
     """
     # for data, target in test_loader:
     data_file: List[str] = []
@@ -45,6 +46,7 @@ def neurosim_ppa(model_name:str, model: nn.Module, test_loader: DataLoader, ram_
         if i==0:
             hook_handle_list = hook.hardware_evaluation(model,8,8,ram_size, ram_size, model_name, "WAGE")
         with torch.no_grad():
+            data, target = data.to(device), target.to(device)
             data, target = Variable(data), Variable(target)
             _ = model(data)
         if i==0:
@@ -89,4 +91,4 @@ if __name__ == "__main__":
     hd_factory.init_buffer(train_loader)
 
     model = hd_factory.create()
-    print(neurosim_ppa("HD", model, test_loader, 64, int(1e9), 300, 1))
+    print(neurosim_ppa("HD", model, test_loader, 64, int(1e9), 300, 1, "cuda:0"))

@@ -436,7 +436,7 @@ void print_summary(double chipArea, double chipAreaArray, double chipAreaIC,
          << endl;
 }
 
-tuple<double, double, double> PPA(const string &net_file,
+tuple<double, double, double, double> PPA(const string &net_file,
                                   int cell_type,
                                   float frequency,
                                   int tempature,
@@ -895,7 +895,7 @@ tuple<double, double, double> PPA(const string &net_file,
     //               chipLatencyOther, chipEnergyADC, chipEnergyAccum,
     //               chipEnergyOther, numComputation, start);
 
-    return make_tuple(chipReadDynamicEnergy * 1e6, chipReadLatency * 1e6, chipArea * 1e6);
+    return make_tuple(chipReadDynamicEnergy * 1e6, chipReadLatency * 1e6, chipArea * 1e6, clkPeriod * 1e6);
 }
 
 PYBIND11_MODULE(neurosim_cpp, m) {

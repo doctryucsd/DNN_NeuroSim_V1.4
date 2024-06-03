@@ -1,7 +1,7 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from utee import wage_initializer,wage_quantizer,float_quantizer
+from ..utee import wage_initializer,wage_quantizer,float_quantizer
 import numpy as np
 
 class FConv2d(nn.Conv2d):

@@ -2,12 +2,12 @@
 import os
 import torch.nn as nn
 import shutil
-from modules.quantization_cpu_np_infer import QConv2d,QLinear
-from modules.floatrange_cpu_np_infer import FConv2d, FLinear
+from ..modules.quantization_cpu_np_infer import QConv2d,QLinear
+from ..modules.floatrange_cpu_np_infer import FConv2d, FLinear
 import numpy as np
 import torch
-from utee import wage_quantizer
-from utee import float_quantizer
+from ..utee import wage_quantizer
+from ..utee import float_quantizer
 
 file_list = []
 
