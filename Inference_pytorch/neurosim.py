@@ -1,13 +1,14 @@
 import torch
 import os
 from torch import nn, Tensor
-from torch.autograd import Variable
 from .utee import hook
 from typing import Tuple
-from torch.utils.data import DataLoader
-from .build.neurosim_cpp import PPA # type: ignore
 # import neurosim_cpp # type: ignore
 from typing import List
+import importlib
+# from .build.neurosim_cpp import PPA # type: ignore
+from .build import neurosim_cpp
+
 
 def write_model_network(model: nn.Module, model_name: str) -> str:
     assert os.path.exists(f"./layer_record_{model_name}"), f"Directory ./layer_record_{model_name} does not exist"
@@ -51,7 +52,8 @@ def neurosim_ppa(model_name:str, model: nn.Module, x_test: Tensor, ram_size: int
     net_file: str = write_model_network(model, model_name)
     cell_type: int = 2
 
-    return PPA(net_file, cell_type, frequency, temperature, ram_size, cell_bit, data_file)
+    importlib.reload(neurosim_cpp)
+    return neurosim_cpp.PPA(net_file, cell_type, frequency, temperature, ram_size, cell_bit, data_file)
 
 if __name__ == "__main__":
     from datasets import load_dataset
