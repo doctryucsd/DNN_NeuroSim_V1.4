@@ -5,6 +5,5 @@ datasets/
 layer_record*/
 log/
 models/
-modules/
 __pycache__/
 build/

@@ -16,7 +16,7 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fopenmp -O3 -w")
 
 # Find all source files
 file(GLOB ALL_SRC "NeuroSIM/*.cpp")
-list(REMOVE_ITEM ALL_SRC "/home/mole/HDnn-RRAM-Opt/neurosim/Inference_pytorch/NeuroSIM/main.cpp")
+list(REMOVE_ITEM ALL_SRC "${CMAKE_CURRENT_BINARY_DIR}/NeuroSIM/main.cpp")
 message("${ALL_SRC}")
 
 # Create the pybind11 module
