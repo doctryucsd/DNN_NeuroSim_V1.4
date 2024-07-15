@@ -25,7 +25,7 @@ def write_model_network(model: nn.Module, model_name: str) -> str:
 
     return network_file
 
-def neurosim_ppa(model_name:str, model: nn.Module, x_test: Tensor, ram_size: int, frequency: int, temperature: int, cell_bit: int, device: str) -> Tuple[float, float, float, float]:
+def neurosim_ppa(model_name:str, model: nn.Module, x_test: Tensor, ram_size: int, frequency: int, temperature: int, cell_bit: int) -> Tuple[float, float, float, float]:
     """
     Args:
         model_name: model name
@@ -54,38 +54,3 @@ def neurosim_ppa(model_name:str, model: nn.Module, x_test: Tensor, ram_size: int
 
     importlib.reload(neurosim_cpp)
     return neurosim_cpp.PPA(net_file, cell_type, frequency, temperature, ram_size, cell_bit, data_file)
-
-if __name__ == "__main__":
-    from datasets import load_dataset
-    from typing import Any, Dict
-    data_args: Dict[str, Any] = {
-        "dataset": "mnist",
-        "train_batch_size": 2048,
-        "test_batch_size": 16,
-        "num_workers": 4,
-        "train_ratio": 0.8,
-    }
-    train_loader, _, test_loader = load_dataset("mnist", data_args, True)
-    from models import HDFactory
-    # params
-    hd_dim: int = 2048
-    f1: int = 28
-    d1: int = 64
-    reram_size: int = 64
-    frequency: int = int(1e9)
-    binarize_type: bool = False
-    kron: bool = False
-
-    # construct hd
-    hd_factory = HDFactory(
-        28 * 28, hd_dim, 10, binarize_type, "cpu"
-    )
-    if kron:
-        # pass
-        hd_factory.set_kronecker(d1, f1)
-    hd_factory.bernoulli()
-    hd_factory.binarize(binarize_type)
-    hd_factory.init_buffer(train_loader)
-
-    model = hd_factory.create()
-    print(neurosim_ppa("HD", model, next(iter(test_loader))[0], 64, int(1e9), 300, 1, "cuda:0"))
