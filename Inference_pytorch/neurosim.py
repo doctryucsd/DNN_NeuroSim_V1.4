@@ -7,8 +7,6 @@ from typing import Tuple
 from typing import List
 import importlib
 # from .build.neurosim_cpp import PPA # type: ignore
-from .build import neurosim_cpp
-
 
 def write_model_network(model: nn.Module, model_name: str) -> str:
     assert os.path.exists(f"./layer_record_{model_name}"), f"Directory ./layer_record_{model_name} does not exist"
@@ -41,6 +39,8 @@ def neurosim_ppa(model_name:str, model: nn.Module, x_test: Tensor, ram_size: int
         area: mm^2
         clock period: us
     """
+    from .build import neurosim_cpp
+
     # for data, target in test_loader:
     data_file: List[str] = []
 
